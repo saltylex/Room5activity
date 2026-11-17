@@ -1,0 +1,326 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const LoginRegisterApp());
+}
+
+class LoginRegisterApp extends StatelessWidget {
+  const LoginRegisterApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Jolex Auth Lab',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        inputDecorationTheme: const InputDecorationTheme(
+          border: OutlineInputBorder(),
+        ),
+        useMaterial3: true,
+      ),
+      home: const AuthPage(),
+    );
+  }
+}
+
+class AuthPage extends StatefulWidget {
+  const AuthPage({super.key});
+
+  @override
+  State<AuthPage> createState() => _AuthPageState();
+}
+
+class _PracticeAccount {
+  const _PracticeAccount(this.name, this.email, this.password);
+
+  final String name;
+  final String email;
+  final String password;
+}
+
+class _AuthPageState extends State<AuthPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
+
+  // This practice account lives only in this page's memory, never on disk.
+  _PracticeAccount? _account;
+  bool _isRegistering = false;
+  bool _isLoggedIn = false;
+  bool _showPassword = false;
+  bool _showConfirmation = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  void _message(String text) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  void _resetForm() {
+    _formKey.currentState?.reset();
+    _nameController.clear();
+    _emailController.clear();
+    _passwordController.clear();
+    _confirmController.clear();
+    _showPassword = false;
+    _showConfirmation = false;
+  }
+
+  void _switchForm() {
+    FocusScope.of(context).unfocus();
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    setState(() {
+      _resetForm();
+      _isRegistering = !_isRegistering;
+    });
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus();
+    final email = _emailController.text.trim().toLowerCase();
+    // Password whitespace and case are significant.
+    final password = _passwordController.text;
+
+    if (_isRegistering) {
+      if (_account != null) {
+        _message('An account is already registered. Please log in instead.');
+        return;
+      }
+      _account = _PracticeAccount(_nameController.text.trim(), email, password);
+      setState(() {
+        _resetForm();
+        _isRegistering = false;
+      });
+      _message('Registration successful! Please log in.');
+      return;
+    }
+
+    final account = _account;
+    if (account == null) {
+      _message('No account registered yet. Please register first.');
+    } else if (email != account.email || password != account.password) {
+      _message('Incorrect email or password. Please try again.');
+    } else {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      setState(() {
+        _resetForm();
+        _isLoggedIn = true;
+      });
+    }
+  }
+
+  void _logout() {
+    setState(() {
+      _resetForm();
+      _isLoggedIn = false;
+      _isRegistering = false;
+    });
+  }
+
+  String? _validateEmail(String? value) {
+    final email = (value ?? '').trim();
+    if (email.isEmpty) return 'Please enter your email.';
+    if (!RegExp(r'^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$').hasMatch(email)) {
+      return 'Please enter a valid email address.';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) return 'Please enter your password.';
+    if (value.length < 8) return 'Password must be at least eight characters.';
+    return null;
+  }
+
+  Widget _passwordField({bool confirmation = false}) {
+    final visible = confirmation ? _showConfirmation : _showPassword;
+    return TextFormField(
+      key: ValueKey(confirmation ? 'confirmation' : 'password'),
+      controller: confirmation ? _confirmController : _passwordController,
+      obscureText: !visible,
+      autocorrect: false,
+      enableSuggestions: false,
+      textInputAction: _isRegistering && !confirmation
+          ? TextInputAction.next
+          : TextInputAction.done,
+      onFieldSubmitted: (_) {
+        if (!_isRegistering || confirmation) _submit();
+      },
+      decoration: InputDecoration(
+        labelText: confirmation ? 'Confirm password' : 'Password',
+        suffixIcon: IconButton(
+          tooltip:
+              '${visible ? 'Hide' : 'Show'} ${confirmation ? 'confirmation password' : 'password'}',
+          onPressed: () => setState(() {
+            if (confirmation) {
+              _showConfirmation = !_showConfirmation;
+            } else {
+              _showPassword = !_showPassword;
+            }
+          }),
+          icon: Icon(visible ? Icons.visibility_off : Icons.visibility),
+        ),
+      ),
+      validator: confirmation
+          ? (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please confirm your password.';
+              }
+              if (value != _passwordController.text) {
+                return 'Passwords do not match.';
+              }
+              return null;
+            }
+          : _validatePassword,
+    );
+  }
+
+  Widget _authForm() {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            _isRegistering ? 'Create account' : 'Log in',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          const SizedBox(height: 24),
+          if (_isRegistering) ...[
+            TextFormField(
+              key: const ValueKey('name'),
+              controller: _nameController,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(labelText: 'Full name'),
+              validator: (value) => (value ?? '').trim().isEmpty
+                  ? 'Please enter your name.'
+                  : null,
+            ),
+            const SizedBox(height: 16),
+          ],
+          TextFormField(
+            key: const ValueKey('email'),
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            autocorrect: false,
+            decoration: const InputDecoration(labelText: 'Email'),
+            validator: _validateEmail,
+          ),
+          const SizedBox(height: 16),
+          _passwordField(),
+          if (_isRegistering) ...[
+            const SizedBox(height: 16),
+            _passwordField(confirmation: true),
+          ],
+          const SizedBox(height: 24),
+          FilledButton(
+            key: const ValueKey('submit'),
+            onPressed: _submit,
+            child: Text(_isRegistering ? 'Register' : 'Log in'),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            key: const ValueKey('switch-form'),
+            onPressed: _switchForm,
+            child: Text(
+              _isRegistering
+                  ? 'Already have an account? Log in'
+                  : 'Need an account? Register',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _welcome() {
+    final account = _account!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Icon(
+          Icons.check_circle_outline,
+          size: 56,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Welcome, ${account.name}!',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        const SizedBox(height: 8),
+        Text(account.email, textAlign: TextAlign.center),
+        const SizedBox(height: 24),
+        FilledButton(onPressed: _logout, child: const Text('Log out')),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Jolex Auth Lab',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Lab Activity 3 · Login & Registration',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: _isLoggedIn ? _welcome() : _authForm(),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Jolex Pasignasigna\n Code: CCE106(3450)',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Practice only: one temporary account.\n'
+                    'Restarting the app clears the account.',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

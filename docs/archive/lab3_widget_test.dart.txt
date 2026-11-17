@@ -1,0 +1,239 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:pasignasigna_lab3/main.dart' hide main;
+import 'package:pasignasigna_lab3/main.dart' as app show main;
+
+Finder field(String key) => find.byKey(ValueKey(key));
+
+Future<void> tap(WidgetTester tester, Finder finder) async {
+  await tester.ensureVisible(finder);
+  await tester.pumpAndSettle();
+  await tester.tap(finder);
+  await tester.pumpAndSettle();
+}
+
+Future<void> credentials(
+  WidgetTester tester, {
+  String email = 'Jolex@example.com',
+  String password = 'Jolex123',
+}) async {
+  await tester.enterText(field('email'), email);
+  await tester.enterText(field('password'), password);
+}
+
+Future<void> register(
+  WidgetTester tester, {
+  String name = 'Jolex Pasignasigna',
+  String email = 'Jolex@example.com',
+  String password = 'Jolex123',
+}) async {
+  await tap(tester, field('switch-form'));
+  await tester.enterText(field('name'), name);
+  await credentials(tester, email: email, password: password);
+  await tester.enterText(field('confirmation'), password);
+  await tap(tester, field('submit'));
+}
+
+void main() {
+  WidgetController.hitTestWarningShouldBeFatal = true;
+  testWidgets('Entry point opens the branded login page', (tester) async {
+    app.main();
+    await tester.pumpAndSettle();
+    expect(find.byType(AuthPage), findsOneWidget);
+    expect(find.text('Jolex Auth Lab'), findsOneWidget);
+    expect(find.textContaining('Code: CCE106(3450)'), findsOneWidget);
+    expect(field('name'), findsNothing);
+    expect(field('email'), findsOneWidget);
+  });
+
+  testWidgets(
+    'Required fields, email, minimum length and confirmation validate',
+    (tester) async {
+      await tester.pumpWidget(const LoginRegisterApp());
+      await tap(tester, field('submit'));
+      expect(find.text('Please enter your email.'), findsOneWidget);
+      expect(find.text('Please enter your password.'), findsOneWidget);
+      await tap(tester, field('switch-form'));
+      await tap(tester, field('submit'));
+      expect(find.text('Please enter your name.'), findsOneWidget);
+      expect(find.text('Please enter your email.'), findsOneWidget);
+      expect(find.text('Please enter your password.'), findsOneWidget);
+      expect(find.text('Please confirm your password.'), findsOneWidget);
+
+      await tester.enterText(field('name'), '   ');
+      for (final invalidEmail in [
+        'jolex',
+        'a@@example.com',
+        'a@b',
+        'a b@c.com',
+      ]) {
+        await credentials(tester, email: invalidEmail, password: 'Jolex12');
+        await tester.enterText(field('confirmation'), 'different');
+        await tap(tester, field('submit'));
+        expect(find.text('Please enter your name.'), findsOneWidget);
+        expect(
+          find.text('Please enter a valid email address.'),
+          findsOneWidget,
+        );
+        expect(
+          find.text('Password must be at least eight characters.'),
+          findsOneWidget,
+        );
+        expect(find.text('Passwords do not match.'), findsOneWidget);
+      }
+      await tester.enterText(field('name'), 'Jolex Pasignasigna');
+      await credentials(tester);
+      await tester.enterText(field('confirmation'), 'Jolex123 ');
+      await tap(tester, field('submit'));
+      expect(find.text('Passwords do not match.'), findsOneWidget);
+      expect(find.textContaining('Registration successful'), findsNothing);
+      await tester.enterText(field('confirmation'), 'Jolex123');
+      await tap(tester, field('submit'));
+      expect(
+        find.text('Registration successful! Please log in.'),
+        findsOneWidget,
+      );
+      expect(field('confirmation'), findsNothing);
+    },
+  );
+
+  testWidgets('Both password toggles work and switching clears form state', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const LoginRegisterApp());
+    await tap(tester, field('switch-form'));
+    await credentials(tester);
+    await tester.enterText(field('confirmation'), 'Jolex123');
+    bool obscured(String key) => tester
+        .widget<TextField>(
+          find.descendant(of: field(key), matching: find.byType(TextField)),
+        )
+        .obscureText;
+    expect(obscured('password'), isTrue);
+    expect(obscured('confirmation'), isTrue);
+    await tap(tester, find.byTooltip('Show password'));
+    expect(obscured('password'), isFalse);
+    expect(obscured('confirmation'), isTrue);
+    await tap(tester, find.byTooltip('Show confirmation password'));
+    expect(obscured('confirmation'), isFalse);
+    await tap(tester, find.byTooltip('Hide password'));
+    await tap(tester, find.byTooltip('Hide confirmation password'));
+    expect(obscured('password'), isTrue);
+    expect(obscured('confirmation'), isTrue);
+    await tap(tester, field('switch-form'));
+    expect(field('confirmation'), findsNothing);
+    expect(
+      tester.widget<TextFormField>(field('password')).controller!.text,
+      isEmpty,
+    );
+    expect(find.text('Please enter your name.'), findsNothing);
+  });
+
+  testWidgets('Registration, errors, welcome, logout and repeated login', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const LoginRegisterApp());
+    await credentials(tester);
+    await tap(tester, field('submit'));
+    expect(
+      find.text('No account registered yet. Please register first.'),
+      findsOneWidget,
+    );
+    await register(
+      tester,
+      name: '  Jolex Pasignasigna  ',
+      email: '  Jolex@example.com  ',
+    );
+    expect(
+      find.text('Registration successful! Please log in.'),
+      findsOneWidget,
+    );
+    expect(field('name'), findsNothing);
+
+    for (final attempt in [
+      ('wrong@example.com', 'Jolex123'),
+      ('Jolex@example.com', 'jolex123'),
+      ('Jolex@example.com', ' Jolex123 '),
+    ]) {
+      await credentials(tester, email: attempt.$1, password: attempt.$2);
+      await tap(tester, field('submit'));
+      expect(
+        find.text('Incorrect email or password. Please try again.'),
+        findsOneWidget,
+      );
+      expect(find.text('Log out'), findsNothing);
+    }
+    await register(tester, name: 'Another User', email: 'another@example.com');
+    expect(
+      find.text('An account is already registered. Please log in instead.'),
+      findsOneWidget,
+    );
+    await tap(tester, field('switch-form'));
+    for (var login = 0; login < 2; login++) {
+      await credentials(tester, email: '  JOLEX@EXAMPLE.COM  ');
+      await tap(tester, field('submit'));
+      expect(find.text('Welcome, Jolex Pasignasigna!'), findsOneWidget);
+      expect(find.text('jolex@example.com'), findsOneWidget);
+      await tap(tester, find.text('Log out'));
+      expect(field('email'), findsOneWidget);
+      expect(
+        tester.widget<TextFormField>(field('password')).controller!.text,
+        isEmpty,
+      );
+    }
+  });
+
+  testWidgets(
+    'Password spaces are preserved and fresh app state clears account',
+    (tester) async {
+      await tester.pumpWidget(const LoginRegisterApp());
+      await register(tester, password: ' Jolex123 ');
+      await credentials(tester);
+      await tap(tester, field('submit'));
+      expect(
+        find.text('Incorrect email or password. Please try again.'),
+        findsOneWidget,
+      );
+      await credentials(tester, password: ' Jolex123 ');
+      await tap(tester, field('submit'));
+      expect(find.text('Welcome, Jolex Pasignasigna!'), findsOneWidget);
+      // Dispose the entire app and create fresh state, as on a full restart.
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(const LoginRegisterApp());
+      await credentials(tester, password: ' Jolex123 ');
+      await tap(tester, field('submit'));
+      expect(
+        find.text('No account registered yet. Please register first.'),
+        findsOneWidget,
+      );
+      await register(tester);
+      expect(
+        find.text('Registration successful! Please log in.'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets('Small screen with keyboard inset scrolls without overflow', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 240);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpWidget(const LoginRegisterApp());
+    await register(tester);
+    expect(
+      find.text('Registration successful! Please log in.'),
+      findsOneWidget,
+    );
+    await credentials(tester);
+    await tap(tester, field('submit'));
+    expect(find.text('Welcome, Jolex Pasignasigna!'), findsOneWidget);
+    await tap(tester, find.text('Log out'));
+    expect(field('email'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+}
