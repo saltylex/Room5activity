@@ -29,6 +29,8 @@ const server = http.createServer((req,res) => {
     ws.addEventListener('message', e=> {const m=JSON.parse(e.data); if(pending.has(m.id)) {const {resolve,reject}=pending.get(m.id);pending.delete(m.id);m.error?reject(Error(JSON.stringify(m.error))):resolve(m.result);}});
     const send=(method,params={})=>new Promise((resolve,reject)=> {const key=++id;pending.set(key,{resolve,reject});ws.send(JSON.stringify({id:key,method,params}));});
     const evaluate=async expression=>(await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true})).result.value;
+    ws.addEventListener('message', e => {const m=JSON.parse(e.data); if(m.method==='Runtime.exceptionThrown') console.error('Browser exception:',JSON.stringify(m.params));});
+    await send('Runtime.enable');
     await send('Page.enable');
     await send('Emulation.setDeviceMetricsOverride',{width:430,height:850,deviceScaleFactor:1,mobile:false});
     await send('Page.navigate',{url:'http://127.0.0.1:8765'});
@@ -54,7 +56,7 @@ const server = http.createServer((req,res) => {
       await wait(200);
     };
     const assertText = async text => {
-      if(!(await evaluate('document.body.textContent')).includes(text)) throw Error('Missing text: '+text);
+      if(!(await evaluate(`document.body.textContent + [...document.querySelectorAll('[aria-label]')].map(e=>e.getAttribute('aria-label')).join(' ')`)).includes(text)) {console.log(await evaluate('document.body.textContent')); console.log('Links:',await evaluate('JSON.stringify(window.__profileLinks)')); throw Error('Missing text: '+text);}
     };
     const screenshot = async name => {
       await wait(400);
@@ -80,8 +82,14 @@ const server = http.createServer((req,res) => {
     await clickText('Social Media');
     await assertText('Connect With Me');
     await screenshot('04-social-media');
-    await clickText('Facebook\nstudent.sample');
-    await assertText('Selected account: Facebook: student.sample');
+    await evaluate(`window.__profileLinks = []; window.open = (url) => {window.__profileLinks.push(url); return null;}`);
+    for (const [label,account] of [['Facebook','jolex.pasignasigna'],['Instagram','@_p.jlx'],['TikTok','@xophiasbrother']]) {
+      await clickText(label+'\n'+account);
+      await assertText('Selected account: '+label+': '+account);
+    }
+    const links=await evaluate('window.__profileLinks');
+    const expected=['https://www.facebook.com/jolex.pasignasigna','https://www.instagram.com/_p.jlx/','https://www.tiktok.com/@xophiasbrother'];
+    if(JSON.stringify(links)!==JSON.stringify(expected)) throw Error('Incorrect social profile destinations: '+JSON.stringify(links));
     await clickText('Calculator');
     await assertText('12 + 4 = 16');
     await clickSelector('input[aria-label="First number"]');

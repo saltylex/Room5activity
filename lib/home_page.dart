@@ -53,7 +53,7 @@ class HomePage extends StatelessWidget {
               ListTile(
                 leading: Icon(Icons.share),
                 title: Text('Social Media'),
-                subtitle: Text('View your sample social accounts.'),
+                subtitle: Text('Connect through my social profiles.'),
               ),
             ],
           ),

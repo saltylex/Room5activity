@@ -1,4 +1,4 @@
-﻿# Requirements comparison
+# Requirements comparison
 
 Source: the StatefulWidget and Bottom Navigation requirements supplied in chat.
 
@@ -18,7 +18,7 @@ Source: the StatefulWidget and Bottom Navigation requirements supplied in chat.
 | Two inputs, four operations, result, validation, Clear | Missing | Signed decimals, finite-number validation, zero-division and overflow handling |
 | Keep calculator Scaffold and AppBar | No existing calculator | Calculator has its own Scaffold and AppBar |
 | Student profile | Name and course code only | Jolex Pasignasigna; 557989; BSIT, 3rd Year; CCE106(3450); Jolex129@gmail.com |
-| Sample social accounts and SnackBar actions | Missing | Facebook, Instagram, YouTube sample handles and tap feedback |
+| Sample social accounts and SnackBar actions | Missing | Supplied Facebook, Instagram and TikTok handles, web links, Copy link and tap feedback |
 | GitHub link | No local Git repository | User supplied saltylex/Room5activity; submission.md records delivery |
 | Four page screenshots in Google Docs and PDF | Missing | See screenshots folder and submission.md |
 | Preserve existing work | Original login lab | Original source/tests/README archived under docs/archive |
@@ -26,4 +26,5 @@ Source: the StatefulWidget and Bottom Navigation requirements supplied in chat.
 The previous Lab Activity 4 calculator was not present. Its specified features
 were implemented from the supplied requirements. No student details were invented.
 CCE106(3450), already in the project, is retained as the subject/section code.
-No additional runtime packages were introduced.
+Profile introduction, hobbies and school email are adapted from the supplied
+student_profile_app repository. No additional runtime packages were introduced.

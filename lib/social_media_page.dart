@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'profile_link.dart';
+
 class SocialMediaPage extends StatelessWidget {
   const SocialMediaPage({super.key});
-
-  void _showAccount(BuildContext context, String account) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text('Selected account: $account')));
-  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -21,34 +17,46 @@ class SocialMediaPage extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Sample accounts for this activity.\nTap an account to display its username.',
+          'Tap an account to view my profile.\nYou can also copy its link from the message.',
         ),
         const SizedBox(height: 20),
         Card(
           child: ListTile(
             leading: const Icon(Icons.facebook, color: Colors.blue),
             title: const Text('Facebook'),
-            subtitle: const Text('student.sample'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showAccount(context, 'Facebook: student.sample'),
+            subtitle: const Text('jolex.pasignasigna'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => showProfileLink(
+              context,
+              'Facebook: jolex.pasignasigna',
+              'https://www.facebook.com/jolex.pasignasigna',
+            ),
           ),
         ),
         Card(
           child: ListTile(
             leading: const Icon(Icons.camera_alt, color: Colors.pink),
             title: const Text('Instagram'),
-            subtitle: const Text('@student.sample'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showAccount(context, 'Instagram: @student.sample'),
+            subtitle: const Text('@_p.jlx'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => showProfileLink(
+              context,
+              'Instagram: @_p.jlx',
+              'https://www.instagram.com/_p.jlx/',
+            ),
           ),
         ),
         Card(
           child: ListTile(
-            leading: const Icon(Icons.play_circle, color: Colors.red),
-            title: const Text('YouTube'),
-            subtitle: const Text('@StudentChannel'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showAccount(context, 'YouTube: @StudentChannel'),
+            leading: const Icon(Icons.music_note, color: Colors.black),
+            title: const Text('TikTok'),
+            subtitle: const Text('@xophiasbrother'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => showProfileLink(
+              context,
+              'TikTok: @xophiasbrother',
+              'https://www.tiktok.com/@xophiasbrother',
+            ),
           ),
         ),
       ],

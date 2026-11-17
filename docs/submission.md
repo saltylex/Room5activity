@@ -1,4 +1,4 @@
-﻿# Submission package
+# Submission package
 
 Student: Jolex Pasignasigna (557989), BSIT, 3rd Year, CCE106(3450)
 Email: Jolex129@gmail.com
@@ -11,7 +11,7 @@ Email: Jolex129@gmail.com
   [Social Media](screenshots/04-social-media.png).
 
 The five-page PDF was exported from the native Google Doc, rendered and visually
-checked. It contains documentation of all nine source modules and exactly four
+checked. It contains documentation of the nine required modules and three small profile-link helpers and exactly four
 screenshots, one for each bottom-navigation page.
 
 ## Verification
@@ -19,12 +19,12 @@ screenshots, one for each bottom-navigation page.
 - `flutter pub get`: passed.
 - `dart format --output=none --set-exit-if-changed lib test`: passed.
 - `flutter analyze`: passed, no issues.
-- `flutter test`: passed, six tests.
+- `flutter test`: passed, seven tests.
 - `flutter build web --no-wasm-dry-run`: passed.
 - `flutter build apk --debug`: passed; APK at
   `build/app/outputs/flutter-apk/app-debug.apk` (build artifacts are not committed).
 - Headless Microsoft Edge: admin login, all four destinations, addition result,
-  student profile, sample-account SnackBar and calculator input/result retention
+  student profile, personal-account SnackBar and correct web URLs and calculator input/result retention
   across tab changes passed. Screenshots captured at 430 x 850.
 - Google Doc readback: all module text and four native inline images verified.
 - PDF: five pages; each module screenshot remains with its explanation and caption.
@@ -40,7 +40,9 @@ No existing Lab 4 calculator was in this workspace, so a calculator meeting ever
 listed feature was implemented. Arithmetic uses Dart doubles (normal floating
 point precision applies). Authentication is intentionally a classroom demo;
 there is no backend, persistent account store or secure credential storage.
-Social handles are samples. A full restart clears the registered demo account.
+Social profiles use the URLs supplied by the student. Web builds open a new
+browser tab; native builds offer Copy link. Profile content is adapted from
+https://github.com/saltylex/student_profile_app. A full restart clears the registered demo account.
 
 The Flutter package name is `pasignasigna_navigation_app`; the existing folder
 and platform identifiers remain intact. Original lab code/tests and READMEs are

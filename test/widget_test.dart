@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pasignasigna_navigation_app/demo_auth.dart';
 import 'package:pasignasigna_navigation_app/main.dart';
@@ -159,13 +160,14 @@ void main() {
       expect(find.text('BSIT — 3rd Year'), findsOneWidget);
       await tab(tester, 'Social Media');
       for (final account in [
-        ('Facebook', 'Facebook: student.sample'),
-        ('Instagram', 'Instagram: @student.sample'),
-        ('YouTube', 'YouTube: @StudentChannel'),
+        ('Facebook', 'Facebook: jolex.pasignasigna'),
+        ('Instagram', 'Instagram: @_p.jlx'),
+        ('TikTok', 'TikTok: @xophiasbrother'),
       ]) {
         await tap(tester, find.text(account.$1));
         expect(find.text('Selected account: ${account.$2}'), findsOneWidget);
       }
+      expect(find.text('YouTube'), findsNothing);
       await tab(tester, 'Home');
       await tab(tester, 'Calculator');
       expect(find.text('-7.5 ÷ 2.5 = -3'), findsOneWidget);
@@ -221,6 +223,55 @@ void main() {
       expect(find.text('Enter a valid finite number.'), findsNothing);
     },
   );
+
+  testWidgets('Personal profile links copy the exact supplied URLs', (
+    tester,
+  ) async {
+    String? copiedLink;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copiedLink = (call.arguments as Map)['text'] as String;
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    await tester.pumpWidget(const StudentApp());
+    await login(tester);
+    await tab(tester, 'Social Media');
+    for (final profile in [
+      ('Facebook', 'https://www.facebook.com/jolex.pasignasigna'),
+      ('Instagram', 'https://www.instagram.com/_p.jlx/'),
+      ('TikTok', 'https://www.tiktok.com/@xophiasbrother'),
+    ]) {
+      await tap(tester, find.text(profile.$1));
+      await tap(tester, find.text('Copy link'));
+      expect(copiedLink, profile.$2);
+      expect(find.text('Profile link copied.'), findsOneWidget);
+    }
+    await tab(tester, 'Profile');
+    expect(find.text('JP'), findsOneWidget);
+    expect(find.text('j.pasignasigna.557989@umindanao.edu.ph'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Gaming'),
+      150,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('About Me'), findsOneWidget);
+    expect(find.text('Gaming'), findsOneWidget);
+    expect(find.text('Riding'), findsOneWidget);
+    expect(find.text('Listening to music'), findsOneWidget);
+    await tap(tester, find.text('Student Profile Repository'));
+    await tap(tester, find.text('Copy link'));
+    expect(copiedLink, 'https://github.com/saltylex/student_profile_app');
+  });
 
   testWidgets(
     'Small screen and keyboard allow registration, navigation and calculator',

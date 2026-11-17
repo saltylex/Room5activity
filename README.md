@@ -1,4 +1,4 @@
-﻿# Student Navigation App
+# Student Navigation App
 
 Jolex Pasignasigna | Student ID 557989 | BSIT, 3rd Year | CCE106(3450)
 
@@ -29,9 +29,11 @@ For an Android device or emulator, run `flutter devices`, then
 - Home introduces the three other pages and includes logout.
 - Calculator supports signed decimal numbers, addition, subtraction,
   multiplication, division, input validation, zero-division protection, and Clear.
-- Profile displays the supplied student information.
-- Social Media displays three clearly labeled sample accounts; tapping an
-  account shows its username in a SnackBar. No external accounts are opened.
+- Profile includes the JP avatar, introduction, hobbies and school email from
+  https://github.com/saltylex/student_profile_app, plus the supplied personal details.
+- Social Media uses your Facebook, Instagram and TikTok profiles. Tapping a card
+  opens its URL in a new browser tab on web and shows its username in a SnackBar.
+  Copy link works on all platforms; native builds use this copy fallback.
 - `MainScreen` uses `setState` with `NavigationBar` and `IndexedStack`, keeping
   calculator values/results and page scroll positions while switching tabs.
 
@@ -47,7 +49,10 @@ For an Android device or emulator, run `flutter devices`, then
 | `lib/home_page.dart` | Welcome, application overview and logout |
 | `lib/calculator_screen.dart` | Two-input arithmetic, result, validation and Clear |
 | `lib/profile_page.dart` | Student identity, course/year, subject/section and email |
-| `lib/social_media_page.dart` | Sample accounts and selection feedback |
+| `lib/social_media_page.dart` | Personal accounts, profile URLs and selection feedback |
+| `lib/profile_link.dart` | Shared selection message and Copy link action |
+| `lib/profile_link_web.dart` | Opens a browser tab using Dart JS interop |
+| `lib/profile_link_stub.dart` | Keeps native builds compatible with Copy link |
 
 No Lab Activity 4 calculator was present, so a new `CalculatorScreen` implements
 all listed calculator requirements. The original authentication app, tests and
@@ -66,7 +71,7 @@ flutter build web
 Widget tests cover demo account replacement and admin access, login and register
 validation, password visibility and exact matching, logout and repeated login,
 all arithmetic operations, invalid/nonfinite inputs, division by zero, numeric
-overflow, Clear, all destinations, sample-account feedback, state preservation,
+overflow, Clear, all destinations, personal-account feedback and copied URLs, state preservation,
 and a 320 x 568 screen with a simulated keyboard inset.
 
 ## Submission
