@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'profile_link.dart';
 
-class SocialMediaPage extends StatelessWidget {
-  const SocialMediaPage({super.key});
+// Personal account links are still available from the feed's app bar.
+class SocialAccountsPage extends StatelessWidget {
+  const SocialAccountsPage({super.key});
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Social Media')),
+    appBar: AppBar(title: const Text('My Social Links')),
     body: ListView(
       padding: const EdgeInsets.all(24),
       children: [

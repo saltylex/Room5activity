@@ -80,6 +80,8 @@ const server = http.createServer((req,res) => {
     await assertText('Jolex129@gmail.com');
     await screenshot('03-profile');
     await clickText('Social Media');
+    await assertText('JohnDoe');
+    await clickText('My social links');
     await assertText('Connect With Me');
     await screenshot('04-social-media');
     await evaluate(`window.__profileLinks = []; window.open = (url) => {window.__profileLinks.push(url); return null;}`);
@@ -90,6 +92,7 @@ const server = http.createServer((req,res) => {
     const links=await evaluate('window.__profileLinks');
     const expected=['https://www.facebook.com/jolex.pasignasigna','https://www.instagram.com/_p.jlx/','https://www.tiktok.com/@xophiasbrother'];
     if(JSON.stringify(links)!==JSON.stringify(expected)) throw Error('Incorrect social profile destinations: '+JSON.stringify(links));
+    await clickText('Back');
     await clickText('Calculator');
     await assertText('12 + 4 = 16');
     await clickSelector('input[aria-label="First number"]');

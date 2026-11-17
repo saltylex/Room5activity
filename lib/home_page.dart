@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'login_screen.dart';
+import 'demo_auth.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -12,10 +13,13 @@ class HomePage extends StatelessWidget {
         IconButton(
           tooltip: 'Log out',
           icon: const Icon(Icons.logout),
-          onPressed: () => Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
-            (_) => false,
-          ),
+          onPressed: () {
+            DemoAuth.logout();
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
+              (_) => false,
+            );
+          },
         ),
       ],
     ),
@@ -53,7 +57,9 @@ class HomePage extends StatelessWidget {
               ListTile(
                 leading: Icon(Icons.share),
                 title: Text('Social Media'),
-                subtitle: Text('Connect through my social profiles.'),
+                subtitle: Text(
+                  'Share posts, like and comment on the student feed.',
+                ),
               ),
             ],
           ),

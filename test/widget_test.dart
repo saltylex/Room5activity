@@ -52,12 +52,14 @@ void main() {
   setUp(() {
     DemoAuth.registeredUsername = null;
     DemoAuth.registeredPassword = null;
+    DemoAuth.logout();
   });
 
   test(
     'Demo accounts replace previous registration and preserve exact passwords',
     () {
       expect(DemoAuth.login('admin', 'admin123'), isTrue);
+      expect(DemoAuth.currentUsername, 'admin');
       expect(DemoAuth.login('ADMIN', 'admin123'), isFalse);
       DemoAuth.register('jolex', ' pass123 ');
       expect(DemoAuth.login('jolex', 'pass123'), isFalse);
@@ -65,7 +67,11 @@ void main() {
       DemoAuth.register('newuser', 'secret');
       expect(DemoAuth.login('jolex', ' pass123 '), isFalse);
       expect(DemoAuth.login('newuser', 'secret'), isTrue);
+      expect(DemoAuth.currentUsername, 'newuser');
       expect(DemoAuth.login('admin', 'admin123'), isTrue);
+      DemoAuth.logout();
+      expect(DemoAuth.currentUsername, isNull);
+      expect(DemoAuth.registeredUsername, 'newuser');
     },
   );
 
@@ -159,6 +165,7 @@ void main() {
       expect(find.text('Jolex129@gmail.com'), findsOneWidget);
       expect(find.text('BSIT — 3rd Year'), findsOneWidget);
       await tab(tester, 'Social Media');
+      await tap(tester, find.byTooltip('My social links'));
       for (final account in [
         ('Facebook', 'Facebook: jolex.pasignasigna'),
         ('Instagram', 'Instagram: @_p.jlx'),
@@ -168,6 +175,8 @@ void main() {
         expect(find.text('Selected account: ${account.$2}'), findsOneWidget);
       }
       expect(find.text('YouTube'), findsNothing);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
       await tab(tester, 'Home');
       await tab(tester, 'Calculator');
       expect(find.text('-7.5 ÷ 2.5 = -3'), findsOneWidget);
@@ -246,6 +255,7 @@ void main() {
     await tester.pumpWidget(const StudentApp());
     await login(tester);
     await tab(tester, 'Social Media');
+    await tap(tester, find.byTooltip('My social links'));
     for (final profile in [
       ('Facebook', 'https://www.facebook.com/jolex.pasignasigna'),
       ('Instagram', 'https://www.instagram.com/_p.jlx/'),
@@ -256,6 +266,8 @@ void main() {
       expect(copiedLink, profile.$2);
       expect(find.text('Profile link copied.'), findsOneWidget);
     }
+    await tester.pageBack();
+    await tester.pumpAndSettle();
     await tab(tester, 'Profile');
     expect(find.text('JP'), findsOneWidget);
     expect(find.text('j.pasignasigna.557989@umindanao.edu.ph'), findsOneWidget);
